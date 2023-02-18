@@ -17,7 +17,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://6e2c-5-34-113-193.eu.ngrok.io",
+    origin: process.env.WEB_APP,
   })
 );
 
