@@ -118,6 +118,7 @@ app.post("/web-data", async (req, res) => {
 
     for await (const change of changes) {
       if (change.id) {
+        console.log(change);
         const pass = await Password.findById({ id: change.id });
         pass.name = change.name;
         const encrypted = encode(change.password);
