@@ -107,8 +107,8 @@ bot.onText(/\/passwords(\s)?(.+-.+)*/, async (msg, match) => {
 });
 
 app.post("/web-data", async (req, res) => {
+  const { queryId, changes, total } = req.body;
   try {
-    const { queryId, changes, total } = req.body;
     await bot.answerWebAppQuery(queryId, {
       type: "article",
       id: queryId,
@@ -135,9 +135,9 @@ app.post("/web-data", async (req, res) => {
 
     return res.status(200).json({});
   } catch (err) {
-    await bot.answerWebAppQuery(query, {
+    await bot.answerWebAppQuery(queryId, {
       type: "article",
-      id: query,
+      id: queryId,
       title: "Failed to load data",
       input_message_content: { message_text: "Failed to load data" },
     });
