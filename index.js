@@ -108,10 +108,10 @@ bot.onText(/\/passwords(\s)?(.+-.+)*/, async (msg, match) => {
 
 app.post("/web-data", async (req, res) => {
   try {
-    const { query, changes, total } = req.body;
-    await bot.answerWebAppQuery(query, {
+    const { queryId, changes, total } = req.body;
+    await bot.answerWebAppQuery(queryId, {
       type: "article",
-      id: query,
+      id: queryId,
       title: "Loading data",
       input_message_content: { message_text: "Loading data..." },
     });
@@ -126,7 +126,7 @@ app.post("/web-data", async (req, res) => {
       }
     }
 
-    await bot.answerWebAppQuery(query, {
+    await bot.answerWebAppQuery(queryId, {
       type: "article",
       id: query,
       title: `OK, I saved ${total} changes. You can just text me the name of resource and I'll answer you with password!`,
