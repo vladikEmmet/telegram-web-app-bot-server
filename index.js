@@ -116,7 +116,7 @@ app.post("/web-data", async (req, res) => {
       input_message_content: { message_text: "Loading data..." },
     });
 
-    for (const change of changes) {
+    for await (const change of changes) {
       if (change.id) {
         const pass = await Password.findById({ id: change.id });
         pass.name = change.name;
@@ -128,7 +128,7 @@ app.post("/web-data", async (req, res) => {
 
     await bot.answerWebAppQuery(queryId, {
       type: "article",
-      id: query,
+      id: queryId,
       title: `OK, I saved ${total} changes. You can just text me the name of resource and I'll answer you with password!`,
     });
 
