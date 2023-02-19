@@ -114,12 +114,12 @@ bot.onText(/\/passwords(\s)?(.+-.+)*/, async (msg, match) => {
 app.post("/web-data", async (req, res) => {
   const { queryId, changes, total } = req.body;
   try {
-    await bot.answerWebAppQuery(queryId, {
-      type: "article",
-      id: queryId,
-      title: "Loading data",
-      input_message_content: { message_text: "Loading data..." },
-    });
+    // await bot.answerWebAppQuery(queryId, {
+    //   type: "article",
+    //   id: queryId,
+    //   title: "Loading data",
+    //   input_message_content: { message_text: "Loading data..." },
+    // });
 
     for (const change of changes) {
       if (change.id) {
