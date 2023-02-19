@@ -62,7 +62,12 @@ bot.onText(/\/start/, async (msg) => {
         {
           reply_markup: {
             inline_keyboard: [
-              [{ text: "Go to my store", web_app: { url: webApp } }],
+              [
+                {
+                  text: "Go to my store",
+                  web_app: { url: process.env.WEB_APP },
+                },
+              ],
             ],
           },
         }
@@ -116,10 +121,9 @@ app.post("/web-data", async (req, res) => {
       input_message_content: { message_text: "Loading data..." },
     });
 
-    for await (const change of changes) {
+    for (const change of changes) {
       if (change.id) {
-        console.log(change);
-        const pass = await Password.findById({ id: change.id });
+        const pass = await Password.findOne({ _id: change.id });
         pass.name = change.name;
         const encrypted = encode(change.password);
         pass.password = encrypted;
@@ -141,7 +145,7 @@ app.post("/web-data", async (req, res) => {
       title: "Failed to load data",
       input_message_content: { message_text: "Failed to load data" },
     });
-    return res.status(500).json({});
+    return res.status(500).json({ message: err.message });
   }
 });
 
