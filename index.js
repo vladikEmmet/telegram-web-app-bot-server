@@ -107,8 +107,8 @@ bot.onText(/\/passwords(\s)?(.+-.+)*/, async (msg, match) => {
 });
 
 app.post("/web-data", async (req, res) => {
-  const { query, changes, total } = req.body;
   try {
+    const { query, changes, total } = req.body;
     await bot.answerWebAppQuery(query, {
       type: "article",
       id: query,
