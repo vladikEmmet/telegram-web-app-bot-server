@@ -134,7 +134,10 @@ app.post("/web-data", async (req, res) => {
     await bot.answerWebAppQuery(queryId, {
       type: "article",
       id: queryId,
-      title: `OK, I saved ${total} changes. You can just text me the name of resource and I'll answer you with password!`,
+      title: "Data saved",
+      input_message_content: {
+        message_text: `OK, I saved ${total} changes. You can just text me the name of resource and I'll answer you with password!`,
+      },
     });
 
     return res.status(200).json({});
