@@ -31,10 +31,46 @@ app.listen(PORT, () => {
     .catch((err) => console.log("DB err", err));
 });
 
+bot.on("message", async (msg) => {
+  const chatId = msg.chat.id;
+  const text = msg.text;
+
+  try {
+    if (text.startsWith("/")) return;
+
+    const resourceName = text.toLowerCase();
+
+    const pass = await Password.findOne({
+      userTgId: msg.from?.id,
+      name: resourceName,
+    });
+    if (!pass) {
+      // await bot.sendSticker(chatId, "./stickers/");
+      await bot.sendMessage(
+        chatId,
+        "You don`t have password in this resource. Let`s check your store",
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "Go to my store", web_app: { url: webApp } }],
+            ],
+          },
+        }
+      );
+    } else {
+      const decoded = decode(pass.password);
+      await bot.sendMessage(chatId, "Your password:");
+      await bot.sendMessage(chatId, decoded);
+    }
+  } catch (err) {
+    await bot.sendMessage(chatId, "Sorry, I`m very busy now. Try again later");
+  }
+});
+
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
 
-  const user = await User.findOne({ tgId: msg.from.id });
+  const user = await User.findOne({ tgId: msg.from?.id });
 
   try {
     if (!user) {
@@ -42,11 +78,11 @@ bot.onText(/\/start/, async (msg) => {
       await bot.sendSticker(chatId, "./stickers/backtothework_056.webp");
       await bot.sendMessage(
         chatId,
-        "Hi! Now I am your memory. Would you like to add a new password? Enter /passwords or click on button",
+        "Hi! Now I am your memory. Would you like to add a new password? Enter /passwords or click on button to visit your store",
         {
           reply_markup: {
             inline_keyboard: [
-              [{ text: "Add new password", web_app: { url: webApp } }],
+              [{ text: "Go to my store", web_app: { url: webApp } }],
             ],
           },
         }
@@ -74,14 +110,85 @@ bot.onText(/\/start/, async (msg) => {
       );
     }
   } catch (err) {
-    console.log(err.message);
+    await bot.sendMessage(chatId, "Sorry, I`m very busy now. Try again later");
+  }
+});
+
+bot.onText(/\/store/, async (msg, match) => {
+  const chatId = msg.chat.id;
+
+  try {
+    await bot.sendMessage(
+      chatId,
+      "It's time to remember your passwords! Click the button below to go to your store.",
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "Go to my store",
+                web_app: { url: process.env.WEB_APP },
+              },
+            ],
+          ],
+        },
+      }
+    );
+  } catch (err) {
+    await bot.sendMessage(
+      chatId,
+      "Sorry, I'm a little confused. Try again later. "
+    );
+  }
+});
+
+bot.onText(/\/remove(\s)?(.+)?/, async (msg, match) => {
+  const chatId = msg.chat.id;
+
+  try {
+    if (!match[2]) {
+      await bot.sendMessage(
+        chatId,
+        "You should specify the name of resource in this format: /remove <resource name>"
+      );
+      return;
+    }
+
+    const data = match[2];
+    const removedPass = await Password.deleteOne({
+      userTgId: msg.from?.id,
+      name: data.toLowerCase(),
+    });
+    if (removedPass.deletedCount !== 1) {
+      await bot.sendMessage(
+        chatId,
+        "Oops! It seems that you do not have such a password."
+      );
+      return;
+    }
+    await bot.sendMessage(chatId, "Password has been removed!", {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "Go to my store",
+              web_app: { url: process.env.WEB_APP },
+            },
+          ],
+        ],
+      },
+    });
+  } catch (err) {
+    await bot.sendMessage(
+      chatId,
+      "I can`t handle this message. Please make sure the format is correct and try again. Error: " +
+        err.message
+    );
   }
 });
 
 bot.onText(/\/passwords(\s)?(.+-.+)*/, async (msg, match) => {
   const chatId = msg.chat.id;
-
-  console.log("match2: " + match[2]);
 
   try {
     if (!match[2]) {
@@ -94,7 +201,7 @@ bot.onText(/\/passwords(\s)?(.+-.+)*/, async (msg, match) => {
     const data = match[2].split("-");
     const encodedPass = encode(data[1]);
     await Password.create({
-      name: data[0],
+      name: data[0].toLowerCase(),
       password: encodedPass,
       userTgId: msg.from.id,
     });
@@ -114,13 +221,6 @@ bot.onText(/\/passwords(\s)?(.+-.+)*/, async (msg, match) => {
 app.post("/web-data", async (req, res) => {
   const { queryId, changes, total } = req.body;
   try {
-    // await bot.answerWebAppQuery(queryId, {
-    //   type: "article",
-    //   id: queryId,
-    //   title: "Loading data",
-    //   input_message_content: { message_text: "Loading data..." },
-    // });
-
     for (const change of changes) {
       if (change.id) {
         const pass = await Password.findOne({ _id: change.id });
