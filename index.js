@@ -21,6 +21,8 @@ app.use(
   })
 );
 
+bot.setWebHook("https://telegram-web-app-bot-server.vercel.app");
+
 app.listen(PORT, () => {
   mongoose
     .connect(process.env.DB_URL, {
